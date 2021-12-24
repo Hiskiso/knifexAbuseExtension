@@ -1,0 +1,20 @@
+{
+   "browser_action": {
+      "default_popup": "public/options.html",
+      "default_title": "Change the Options"
+   },
+   "content_scripts": [ {
+      "all_frames": false,
+      "css": [ "index.css"  ],
+      "js": ["index.js" ],
+      "matches": [ "https://knifex.best/*", "http://knifex.best/*" ],
+      "run_at": "document_end"
+   } ],
+   "content_security_policy": "script-src 'self'; object-src 'self'",
+   "description": "abuse",
+  
+   "manifest_version": 2,
+   "name": "KnifeX Abuse",
+   "permissions": [ "http://knifex.best/*", "https://knifex.best/*", "storage" ],
+   "version": "1.2.1"
+}
