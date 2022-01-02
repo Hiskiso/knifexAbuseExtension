@@ -1,20 +1,25 @@
 {
    "browser_action": {
       "default_popup": "public/options.html",
-      "default_title": "Change the Options"
+      "default_title": "Настройки"
    },
    "content_scripts": [ {
       "all_frames": false,
       "css": [ "index.css"  ],
       "js": ["index.js" ],
-      "matches": [ "https://knifex.best/*", "http://knifex.best/*" ],
+      "matches": [ "https://knifex.best/pages/bonus", "http://knifex.best/pages/bonus" ],
       "run_at": "document_end"
    } ],
    "content_security_policy": "script-src 'self'; object-src 'self'",
-   "description": "abuse",
+   "description": "Auto get promocode knifex",
+   "icons": {
+      "128": "faviconRel.ico",
+      "16": "faviconRel.ico",
+      "48": "faviconRel.ico"
+   },
   
    "manifest_version": 2,
    "name": "KnifeX Abuse",
-   "permissions": [ "http://knifex.best/*", "https://knifex.best/*", "storage" ],
+   "permissions": [ "http://knifex.best/pages/bonus", "https://knifex.best/pages/bonus", "storage", "tabs" ],
    "version": "1.2.1"
 }
