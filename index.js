@@ -1,11 +1,14 @@
 window.accounts = [];
 window.captcha = [];
-window.timers = []
+window.timers = [];
 window.logs = ""
-window.loger = (message, style="")=>{console.log(message, style); window.logs = window.logs + message + "\n"}
+window.loger = (message, style = "") => { console.log(message, style); window.logs = window.logs + message + "\n" }
+window.isCapthaAdded = false;
 
 window.onload = () => {
-
+    try {
+        
+    window.scrollBy(window.innerWidth, window.innerHeight);
     websoketMain()
     captchaUpdater()
 
@@ -15,31 +18,34 @@ window.onload = () => {
         } else {
             window.loger("%cGet account by cookie", "color: blue; font-size: 50px");
             let id = parseCookie(document.cookie).id
-            chrome.storage.sync.set({account: id}, ()=>{})
+            chrome.storage.sync.set({ account: id }, () => { })
         }
 
     });
 
-    setInterval(()=>{
-      try {
-        document.title = document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText + " | " + document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText
-      } catch (error) {
-          document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText
-      }
-       
+    setInterval(() => {
+        try {
+            document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
+        } catch (error) {
+            document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText
+        }
+
     }, 1000)
 
+    } catch (error) {
+        window.loger(error)
+    }
 }
 
 chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
+    function (request, sender, sendResponse) {
         switch (request.command) {
             case "getlogs":
                 {
                     sendResponse(window.logs)
                 }
                 break;
-        
+
             default:
                 break;
         }
@@ -50,7 +56,7 @@ function websoketMain() {
 
     websk.onopen = () => {
         window.loger(window.accounts);
-        websk.send(`420["join",{"ott":"9306472d-949b-4258-99b4-774752860cd1"}]`)
+        websk.send(`420["join",{"ott":"2d3df9d5-b54f-4720-9d13-667479c968d0"}]`)
         window.loger("%c>   " + 'Joined', "color: blue");
         websk.send(2)
         setInterval(() => {
@@ -110,14 +116,17 @@ function websoketMain() {
 
 
 function clearTimers() {
+    console.log("clear",window.isCapthaAdded)
+    window.isCapthaAdded = false;
     window.timers.map(el => { clearTimeout(el); window.loger("All timers clear") })
-
+    window.timers = []
+    
 }
 
 const parseCookie = str =>
     str
         .split(';')
-        .map(v => v.split('=')) 
+        .map(v => v.split('='))
         .reduce((acc, v) => {
             acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
             return acc;
@@ -126,28 +135,37 @@ const parseCookie = str =>
 
 function knifexAlert(message, type = "good") {
     let elAlertKnifex = document.getElementById("__react-alert__");
+    elAlertKnifex.innerHTML = ""
     elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="left: 0px; position: fixed; display: flex; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; bottom: 0px; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type == "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
     setTimeout(() => { elAlertKnifex.innerHTML = "" }, 7000)
 }
 
 function captchaUpdater() {
-    window.temp = document.querySelector("#g-recaptcha-response").value
+    window.temp = document.querySelector("textarea[name='g-recaptcha-response'").value
+
 
     setInterval(() => {
-        if (window.temp != document.querySelector("#g-recaptcha-response").value) {
+        try {
+            if (window.temp != document.querySelector("textarea[name='g-recaptcha-response'").value) {
 
-            clearTimers()
-            knifexAlert("Captcha added")
-            window.temp = document.querySelector("#g-recaptcha-response").value
-            window.captcha.shift()
-            window.loger("%cCaptcha added", "color: green")
-            window.captcha.push(window.temp);
-            let ifr = document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.gbonus > div.abonus.layoutSection > div.abonus-container.abonus-container-main > form > div.abonus-container__recaptcha > div > div > div > div > div > iframe")
-            ifr.src = ifr.src
+                window.timers.map(timer=>clearTimeout(timer))
 
-            let timer = setTimeout(() => { knifexAlert("Captcha Expired", "bad"); window.loger("%cCaptcha Expired!!", "color: red; background: #0f2c51; font-size: 30px"); }, 60000)
-            window.timers.push(timer)
+                window.temp = document.querySelector("textarea[name='g-recaptcha-response'").value
+                window.captcha.shift()
+                window.loger("%cCaptcha added", "color: green")
+                window.captcha.push(window.temp);
+                window.isCapthaAdded = true;
+                let ifr = document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.gbonus > div.abonus.layoutSection > div.abonus-container.abonus-container-main > form > div.abonus-container__recaptcha > div > div > div > div > div > iframe")
+                ifr.src = ifr.src
 
+                let timer = setTimeout(() => { clearTimers(); knifexAlert("Captcha Expired", "bad"); window.loger("%cCaptcha Expired!!", "color: red; background: #0f2c51; font-size: 30px"); }, 60000)
+                window.timers.push(timer)
+                
+                knifexAlert("Captcha added");
+
+            }
+        } catch (er) {
+            console.log(er);
         }
     }, 1000)
 
