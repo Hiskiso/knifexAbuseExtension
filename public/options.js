@@ -1,9 +1,8 @@
 document.getElementById("form").addEventListener("submit", addnew)
-let note = document.querySelector("body > div > div.abonus-container__note")
+let infonote = document.querySelector("body > div > div.abonus-container__note")
 let input = document.querySelector("#new_account")
-input.onclick = function () {
-    this.select();
-   }
+let versionNoteEl = document.querySelector(".version_note")
+let  manifestData = chrome.runtime.getManifest();
 
 function addnew(e){
 e.preventDefault();
@@ -17,7 +16,7 @@ if (e.target.children[0].children[0].children[0].value.charAt(0) == "/") {
                     chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{navigator.clipboard.writeText(response)});
                    });
                    e.target.children[0].children[0].children[0].value = "";
-                   note.innerText = "Скопированно в буфер обмена"
+                   infonote.innerText = "Скопированно в буфер обмена"
                    updateList()
             }
             break;
@@ -46,5 +45,13 @@ function updateList(){
        });
       
 }
+
+
+   window.onload = ()=>{
+    versionNoteEl.innerText = "v " + manifestData.version
+    input.onclick = function () {
+        this.select();
+       }
+   }
 
 updateList()
