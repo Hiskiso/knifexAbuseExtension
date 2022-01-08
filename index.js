@@ -2,7 +2,7 @@ window.accounts = [];
 window.captcha = [];
 window.timers = [];
 window.logs = ""
-window.loger = (message, style = "") => { console.log(message, style); window.logs = window.logs + message + "\n" }
+window.loger = (message, style = "") => {message !== `<   3` && message !== ">   2" && console.log(message, style); window.logs = window.logs + message + "\n" }
 window.isCapthaAdded = false;
 
 window.onload = () => {
@@ -67,8 +67,6 @@ function websoketMain() {
 
     websk.onmessage = (data) => {
 
-
-
         window.loger('<   ' + data.data);
 
         if (data.data.toString().substring(0, 2) == '42') {
@@ -116,7 +114,6 @@ function websoketMain() {
 
 
 function clearTimers() {
-    console.log("clear",window.isCapthaAdded)
     window.isCapthaAdded = false;
     window.timers.map(el => { clearTimeout(el); window.loger("All timers clear") })
     window.timers = []
@@ -146,7 +143,7 @@ function captchaUpdater() {
 
     setInterval(() => {
         try {
-            if (window.temp != document.querySelector("textarea[name='g-recaptcha-response'").value) {
+            if (window.temp != document.querySelector("textarea[name='g-recaptcha-response'").value && document.querySelector("textarea[name='g-recaptcha-response'").value !== "") {
 
                 window.timers.map(timer=>clearTimeout(timer))
 
@@ -165,7 +162,7 @@ function captchaUpdater() {
 
             }
         } catch (er) {
-            console.log(er);
+            console.error(er);
         }
     }, 1000)
 
