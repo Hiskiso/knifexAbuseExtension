@@ -1,6 +1,6 @@
 # Instalation
 
-- Download release code [download zip](https://github.com/Hiskiso/knifexAbuseExtension/archive/refs/tags/1.1.0.zip)
+- Download release code [download zip](https://github.com/Hiskiso/knifexAbuseExtension/archive/refs/heads/master.zip)
 - Enable developer mode on the browser extensions tab
 
 ![EnableDevModeIMG](https://imgur.com/hisqpTm.png)
