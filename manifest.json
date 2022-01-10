@@ -16,8 +16,8 @@
       "128": "faviconRel.ico",
       "16": "faviconRel.ico",
       "48": "faviconRel.ico"
-   },
-  
+   },  
+   
    "manifest_version": 2,
    "name": "KnifeX Abuse",
    "permissions": [ "http://knifex.best/pages/bonus", "https://knifex.best/pages/bonus", "storage", "tabs" ],

@@ -2,35 +2,34 @@ window.accounts = [];
 window.captcha = [];
 window.timers = [];
 window.logs = ""
-window.loger = (message, style = "") => {message !== `<   3` && message !== ">   2" && console.log(message, style); window.logs = window.logs + message + "\n" }
+window.lastPromo = ''
+window.loger = (message, style = "") => {console.log(message, style); window.logs = window.logs + message + "\n" }
 window.isCapthaAdded = false;
 
 window.onload = () => {
     try {
-        
-    window.scrollBy(window.innerWidth, window.innerHeight);
-    websoketMain()
-    captchaUpdater()
+        websoketMain()
+        captchaUpdater()
 
-    chrome.storage.sync.get(['account'], function (result) {
-        if (result.account) {
-            window.accounts = [result.account];
-        } else {
-            window.loger("%cGet account by cookie", "color: blue; font-size: 50px");
-            let id = parseCookie(document.cookie).id
-            chrome.storage.sync.set({ account: id }, () => { })
-        }
+        chrome.storage.sync.get(['account'], function (result) {
+            if (result.account) {
+                window.accounts = [result.account];
+            } else {
+                window.loger("%cGet account by cookie", "color: blue; font-size: 50px");
+                let id = parseCookie(document.cookie).id
+                chrome.storage.sync.set({ account: id }, () => { })
+            }
 
-    });
+        });
 
-    setInterval(() => {
-        try {
-            document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
-        } catch (error) {
-            document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText
-        }
+        setInterval(() => {
+            try {
+                document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
+            } catch (error) {
+                document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText
+            }
 
-    }, 1000)
+        }, 1000)
 
     } catch (error) {
         window.loger(error)
@@ -40,11 +39,20 @@ window.onload = () => {
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         switch (request.command) {
-            case "getlogs":
-                {
-                    sendResponse(window.logs)
-                }
+            case "getlogs": {
+                sendResponse(window.logs);
+            }
                 break;
+
+            case "lastpromo": {
+               sendResponse(applyPromo(window.lastPromo))
+            }
+                break;
+            case "resetid":{
+                let id = parseCookie(document.cookie).id
+                chrome.storage.sync.set({ account: id }, () => { })
+                sendResponse("Готово")
+            }
 
             default:
                 break;
@@ -60,14 +68,13 @@ function websoketMain() {
         window.loger("%c>   " + 'Joined', "color: blue");
         websk.send(2)
         setInterval(() => {
-            window.loger(">   " + '2');
             websk.send(2)
         }, 25000);
     };
 
     websk.onmessage = (data) => {
 
-        window.loger('<   ' + data.data);
+      data.data !== '3' &&  window.loger('<   ' + data.data);
 
         if (data.data.toString().substring(0, 2) == '42') {
 
@@ -75,32 +82,11 @@ function websoketMain() {
             const promo = data[1]?.newPromoQuery?.name;
             window.loger("%c" + promo, "color: green; background: #0f2c51; font-size: 30px");
 
-
-
-            window.accounts.forEach(async (account, num) => {
-                fetch(`https:///knifex.best/api/user/freebie/promo`, {
-                    method: 'POST',
-                    body: JSON.stringify({ exclusive: false, promocode: promo, "captcha": window.captcha[num] }),
-                    headers: {
-                        "content-type": "application/json",
-                        "meta-data": account,
-                        "cookie": `id=${account}`,
-                    }
-                }).then(r => r.json()).then(r => {
-                    if (r.data == "LIMIT") {
-                        clearTimers();
-                        knifexAlert("Pleace update captcha", "bad")
-                        window.loger("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
-                    }
-                    else if (r.ok == true) {
-                        knifexAlert("PROMO ACTIVATED");
-                        window.loger("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px")
-                    }
-                    else {
-                        window.loger(JSON.stringify(r) + ' ' + account)
-                    }
-                })
-            });
+            if (window.lastPromo !== promo) {
+                applyPromo(promo);
+            }
+            window.lastPromo = promo
+           
             clearTimers()
 
         }
@@ -113,11 +99,39 @@ function websoketMain() {
 }
 
 
+function applyPromo(promo){
+    window.accounts.forEach(async (account, num) => {
+        fetch(`https:///knifex.best/api/user/freebie/promo`, {
+            method: 'POST',
+            body: JSON.stringify({ exclusive: false, promocode: promo, "captcha": window.captcha[num] }),
+            headers: {
+                "content-type": "application/json",
+                "meta-data": account,
+                "cookie": `id=${account}`,
+            }
+        }).then(r => r.json()).then(r => {
+            if (r.data == "LIMIT") {
+                clearTimers();
+                knifexAlert("Pleace update captcha", "bad")
+                window.loger("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
+            }
+            else if (r.ok == true) {
+                knifexAlert("PROMO ACTIVATED");
+                window.loger("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px")
+            }
+            else {
+                window.loger(JSON.stringify(r) + ' ' + account)
+            }
+            return r.data
+        })
+    });
+}
+
 function clearTimers() {
     window.isCapthaAdded = false;
     window.timers.map(el => { clearTimeout(el); window.loger("All timers clear") })
     window.timers = []
-    
+
 }
 
 const parseCookie = str =>
@@ -145,7 +159,7 @@ function captchaUpdater() {
         try {
             if (window.temp != document.querySelector("textarea[name='g-recaptcha-response'").value && document.querySelector("textarea[name='g-recaptcha-response'").value !== "") {
 
-                window.timers.map(timer=>clearTimeout(timer))
+                window.timers.map(timer => clearTimeout(timer))
 
                 window.temp = document.querySelector("textarea[name='g-recaptcha-response'").value
                 window.captcha.shift()
@@ -157,7 +171,7 @@ function captchaUpdater() {
 
                 let timer = setTimeout(() => { clearTimers(); knifexAlert("Captcha Expired", "bad"); window.loger("%cCaptcha Expired!!", "color: red; background: #0f2c51; font-size: 30px"); }, 60000)
                 window.timers.push(timer)
-                
+
                 knifexAlert("Captcha added");
 
             }

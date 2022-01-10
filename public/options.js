@@ -7,30 +7,54 @@ let  manifestData = chrome.runtime.getManifest();
 function addnew(e){
 e.preventDefault();
 if (e.target.children[0].children[0].children[0].value.charAt(0) == "/") {
+
+    chrome.tabs.query({currentWindow: true, active: true}, function (tabs){
+    var activeTab = tabs[0];
+
     let command = e.target.children[0].children[0].children[0].value.slice(1)
-    switch (command) {
+
+    let args = command.split(" ");args.shift()
+
+    switch (command.split(" ")[0]) {
         case "getlogs":
             {
-                chrome.tabs.query({currentWindow: true, active: true}, function (tabs){
-                    var activeTab = tabs[0];
-                    chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{navigator.clipboard.writeText(response)});
-                   });
-                   e.target.children[0].children[0].children[0].value = "";
-                   infonote.innerText = "Скопированно в буфер обмена"
-                   updateList()
+               
+                chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{navigator.clipboard.writeText(response)});
+                
+                
+                e.target.children[0].children[0].children[0].value = "";
+                input.placeholder = "Скопированно в буфер обмена"
             }
             break;
-    
+
+        case "lastpromo":{
+            chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{
+                e.target.children[0].children[0].children[0].value = "";
+                input.placeholder = response !== null ? response : "Ошибка"
+            });
+        }
+        break;
+
+        case "resetid":{
+            chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{
+                e.target.children[0].children[0].children[0].value = "";
+                input.placeholder = response !== null ? response : "Ошибка"
+            });
+        }
+
         default:
             {
                 e.target.children[0].children[0].children[0].value = "";
                 input.placeholder = "Комманда не найдена"
             }
             break;
+        }
 
-    }
+        
+    });
+
 } else{
-    chrome.storage.sync.set({account: e.target.children[0].value}, ()=>{})
+    chrome.storage.sync.set({account: e.target.children[0].children[0].children[0].value}, ()=>{})
     updateList()
 }
 
