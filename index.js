@@ -8,12 +8,14 @@ window.isCapthaAdded = false;
 
 window.onload = () => {
     try {
-        websoketMain()
-        captchaUpdater()
+
+    websoketMain()
+    captchaUpdater()
 
         chrome.storage.sync.get(['account'], function (result) {
             if (result.account) {
                 window.accounts = [result.account];
+                document.cookie = "id=" + result.account + ";"
             } else {
                 window.loger("%cGet account by cookie", "color: blue; font-size: 50px");
                 let id = parseCookie(document.cookie).id
@@ -31,6 +33,8 @@ window.onload = () => {
 
         }, 1000)
 
+        
+
     } catch (error) {
         window.loger(error)
     }
@@ -38,21 +42,34 @@ window.onload = () => {
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+        console.log(request);
         switch (request.command) {
             case "getlogs": {
-                sendResponse(window.logs);
+                navigator.clipboard.writeText(window.logs)
+                sendResponse("Скопированно");
             }
                 break;
 
             case "lastpromo": {
-               sendResponse(applyPromo(window.lastPromo))
+                applyPromo(window.lastPromo, (response)=>{sendResponse(response)})
             }
                 break;
             case "resetid":{
                 let id = parseCookie(document.cookie).id
                 chrome.storage.sync.set({ account: id }, () => { })
                 sendResponse("Готово")
+            } 
+            break;
+            case 'setkey':{
+                chrome.storage.sync.set({cryptoKey: request.args[0]}, ()=>{})
+                sendResponse("Готово")
+                location.reload()
             }
+            break;
+            case "reload":{
+                location.reload()
+            }
+            break;
 
             default:
                 break;
@@ -99,7 +116,8 @@ function websoketMain() {
 }
 
 
-function applyPromo(promo){
+function applyPromo(promo, callback=()=>{}){
+
     window.accounts.forEach(async (account, num) => {
         fetch(`https:///knifex.best/api/user/freebie/promo`, {
             method: 'POST',
@@ -122,9 +140,10 @@ function applyPromo(promo){
             else {
                 window.loger(JSON.stringify(r) + ' ' + account)
             }
-            return r.data
+            callback(r.data)
         })
     });
+
 }
 
 function clearTimers() {
@@ -133,6 +152,7 @@ function clearTimers() {
     window.timers = []
 
 }
+
 
 const parseCookie = str =>
     str

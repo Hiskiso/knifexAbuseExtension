@@ -13,49 +13,29 @@ if (e.target.children[0].children[0].children[0].value.charAt(0) == "/") {
 
     let command = e.target.children[0].children[0].children[0].value.slice(1)
 
-    let args = command.split(" ");args.shift()
+    let args = command.split(" ");
+    args.shift();
 
-    switch (command.split(" ")[0]) {
-        case "getlogs":
-            {
-               
-                chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{navigator.clipboard.writeText(response)});
-                
-                
-                e.target.children[0].children[0].children[0].value = "";
-                input.placeholder = "Скопированно в буфер обмена"
-            }
-            break;
-
-        case "lastpromo":{
-            chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{
-                e.target.children[0].children[0].children[0].value = "";
-                input.placeholder = response !== null ? response : "Ошибка"
-            });
-        }
-        break;
-
-        case "resetid":{
-            chrome.tabs.sendMessage(activeTab.id, {"command": command}, (response)=>{
-                e.target.children[0].children[0].children[0].value = "";
-                input.placeholder = response !== null ? response : "Ошибка"
-            });
-        }
-
-        default:
-            {
-                e.target.children[0].children[0].children[0].value = "";
-                input.placeholder = "Комманда не найдена"
-            }
-            break;
-        }
-
+    chrome.tabs.sendMessage(activeTab.id, { "command": command.split(" ")[0]}, (response)=>{
+        e.target.children[0].children[0].children[0].value = "";
+        console.log(response);
+        input.placeholder = "Применено"
+    });
+     
         
     });
 
 } else{
-    chrome.storage.sync.set({account: e.target.children[0].children[0].children[0].value}, ()=>{})
-    updateList()
+            chrome.storage.sync.set({account: e.target.children[0].children[0].children[0].value}, ()=>{})
+            updateList()
+            chrome.tabs.query({currentWindow: true, active: true}, function (tabs){
+                var activeTab = tabs[0];
+            
+                chrome.tabs.sendMessage(activeTab.id, { "command": "reload"}, (response)=>{});
+                 
+                    
+                });
+    
 }
 
 }
@@ -76,6 +56,15 @@ function updateList(){
     input.onclick = function () {
         this.select();
        }
+
+       chrome.storage.sync.get(['cryptoKey'], function (result) {
+        if (!result.cryptoKey) {
+            input.value = "";
+            input.placeholder = "Введите ключ!"
+        }
+
+    });
+
    }
 
 updateList()

@@ -6,7 +6,7 @@
    "content_scripts": [ {
       "all_frames": false,
       "css": [ "index.css"  ],
-      "js": ["index.js" ],
+      "js": [ "index.js" ],
       "matches": [ "https://knifex.best/pages/bonus", "http://knifex.best/pages/bonus" ],
       "run_at": "document_end"
    } ],
