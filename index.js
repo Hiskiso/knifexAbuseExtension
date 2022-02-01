@@ -3,14 +3,14 @@ window.captcha = [];
 window.timers = [];
 window.logs = ""
 window.lastPromo = ''
-window.loger = (message, style = "") => {console.log(message, style); window.logs = window.logs + message + "\n" }
+window.loger = (message, style = "") => { console.log(message, style); window.logs = window.logs + message + "\n" }
 window.isCapthaAdded = false;
 
 window.onload = () => {
     try {
 
-    websoketMain()
-    captchaUpdater()
+        websoketMain();
+        captchaUpdater();
 
         chrome.storage.sync.get(['account'], function (result) {
             if (result.account) {
@@ -24,6 +24,8 @@ window.onload = () => {
 
         });
 
+       
+
         setInterval(() => {
             try {
                 document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
@@ -33,7 +35,7 @@ window.onload = () => {
 
         }, 1000)
 
-        
+
 
     } catch (error) {
         window.loger(error)
@@ -51,25 +53,19 @@ chrome.runtime.onMessage.addListener(
                 break;
 
             case "lastpromo": {
-                applyPromo(window.lastPromo, (response)=>{sendResponse(response)})
+                applyPromo(window.lastPromo, (result)=>{console.log(result);})
             }
                 break;
-            case "resetid":{
+            case "resetid": {
                 let id = parseCookie(document.cookie).id
                 chrome.storage.sync.set({ account: id }, () => { })
                 sendResponse("Готово")
-            } 
-            break;
-            case 'setkey':{
-                chrome.storage.sync.set({cryptoKey: request.args[0]}, ()=>{})
-                sendResponse("Готово")
+            }
+                break;
+            case "reload": {
                 location.reload()
             }
-            break;
-            case "reload":{
-                location.reload()
-            }
-            break;
+                break;
 
             default:
                 break;
@@ -91,7 +87,7 @@ function websoketMain() {
 
     websk.onmessage = (data) => {
 
-      data.data !== '3' &&  window.loger('<   ' + data.data);
+        data.data !== '3' && window.loger('<   ' + data.data);
 
         if (data.data.toString().substring(0, 2) == '42') {
 
@@ -103,7 +99,7 @@ function websoketMain() {
                 applyPromo(promo);
             }
             window.lastPromo = promo
-           
+
             clearTimers()
 
         }
@@ -116,10 +112,10 @@ function websoketMain() {
 }
 
 
-function applyPromo(promo, callback=()=>{}){
 
+async function applyPromo(promo, callback = () => { }) {
     window.accounts.forEach(async (account, num) => {
-        fetch(`https:///knifex.best/api/user/freebie/promo`, {
+      let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
             method: 'POST',
             body: JSON.stringify({ exclusive: false, promocode: promo, "captcha": window.captcha[num] }),
             headers: {
@@ -127,23 +123,31 @@ function applyPromo(promo, callback=()=>{}){
                 "meta-data": account,
                 "cookie": `id=${account}`,
             }
-        }).then(r => r.json()).then(r => {
+        })
+        let r = await request.json()
             if (r.data == "LIMIT") {
                 clearTimers();
-                knifexAlert("Pleace update captcha", "bad")
+                knifexAlert("Please update captcha", "bad")
                 window.loger("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
             }
             else if (r.ok == true) {
                 knifexAlert("PROMO ACTIVATED");
                 window.loger("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px")
             }
+            else if(r.data == "NOT_FOUND")
+            {
+                knifexAlert(promo + " Not found", "bad")
+            }
+            else if(r.data == "BONUS_REST")
+            {
+                knifexAlert("Max count bonus items in inventory", "bad")
+            }
             else {
                 window.loger(JSON.stringify(r) + ' ' + account)
             }
             callback(r.data)
-        })
+        
     });
-
 }
 
 function clearTimers() {
