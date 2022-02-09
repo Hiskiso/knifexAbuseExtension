@@ -8,10 +8,6 @@ window.isCapthaAdded = false;
 
 window.onload = () => {
     try {
-
-        websoketMain();
-        captchaUpdater();
-
         chrome.storage.sync.get(['account'], function (result) {
             if (result.account) {
                 window.accounts = [result.account];
@@ -24,6 +20,9 @@ window.onload = () => {
 
         });
 
+        websoketMain();
+        captchaUpdater();
+        getProfileInfo();
        
 
         setInterval(() => {
@@ -128,7 +127,7 @@ async function applyPromo(promo, callback = () => { }) {
         let r = await request.json()
             if (r.data == "LIMIT") {
                 clearTimers();
-                knifexAlert("Please update captcha", "bad")
+                knifexAlert("Limit - please update captcha", "bad")
                 window.loger("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
             }
             else if (r.ok == true) {
@@ -144,6 +143,7 @@ async function applyPromo(promo, callback = () => { }) {
                 knifexAlert("Max count bonus items in inventory", "bad")
             }
             else {
+                knifexAlert(promo, "bad")
                 window.loger(JSON.stringify(r) + ' ' + account)
             }
             callback(r.data)
@@ -158,6 +158,19 @@ function clearTimers() {
 
 }
 
+async function getProfileInfo(){
+    let request = await fetch("https://knifex.best/api/user/initial", {
+        headers: {
+            "content-type": "application/json",
+            "meta-data": accounts[0],
+            "cookie": `id=${accounts[0]}`,
+        }
+    });
+
+    let data = await request.json();
+
+    window.lastPromo = data.data.c_p.newPromoQuery.name
+}
 
 const parseCookie = str =>
     str
