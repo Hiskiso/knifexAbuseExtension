@@ -6,37 +6,18 @@ let manifestData = chrome.runtime.getManifest();
 
 function addnew(e) {
     e.preventDefault();
-    if (e.target.children[0].children[0].children[0].value.charAt(0) == "/") {
 
-        chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-            var activeTab = tabs[0];
+    chrome.storage.sync.set({ account: e.target.children[0].children[0].children[0].value }, () => { })
 
-            let command = e.target.children[0].children[0].children[0].value.slice(1)
+    chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+        var activeTab = tabs[0];
 
-            let args = command.split(" ");
-            args.shift();
-
-            chrome.tabs.sendMessage(activeTab.id, { "command": command.split(" ")[0] }, (response) => {
-                e.target.children[0].children[0].children[0].value = "";
-                console.log(response);
-                input.placeholder = response
-            });
+        chrome.tabs.sendMessage(activeTab.id, { "command": "reload" }, (response) => { });
 
 
-        });
-
-    } else {
-        chrome.storage.sync.set({ account: e.target.children[0].children[0].children[0].value }, () => { })
-        updateList()
-        chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-            var activeTab = tabs[0];
-
-            chrome.tabs.sendMessage(activeTab.id, { "command": "reload" }, (response) => { });
+    });
 
 
-        });
-
-    }
 
 }
 
@@ -56,8 +37,7 @@ window.onload = () => {
     input.onclick = function () {
         this.select();
     }
-
+    updateList()
 
 }
 
-updateList()
