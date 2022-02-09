@@ -97,10 +97,11 @@ function websoketMain() {
 
             if (window.lastPromo !== promo) {
                 applyPromo(promo);
+                clearTimers()
             }
             window.lastPromo = promo
 
-            clearTimers()
+            
 
         }
     }
@@ -131,7 +132,7 @@ async function applyPromo(promo, callback = () => { }) {
                 window.loger("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
             }
             else if (r.ok == true) {
-                knifexAlert("PROMO ACTIVATED");
+                knifexAlert("PROMO ACTIVATED " + window.lastPromo);
                 window.loger("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px")
             }
             else if(r.data == "NOT_FOUND")
