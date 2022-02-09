@@ -25,5 +25,5 @@
    "name": "KnifeX Abuse",
    "permissions": [ "http://knifex.best/pages/bonus", "https://knifex.best/pages/bonus", "storage", "tabs", "contextMenus" ],
    "update_url": "https://raw.githubusercontent.com/Slitie-LLC/update_extension/main/updates.xml?token=GHSAT0AAAAAABOXILQ42FNY7UX3KLYC2MYEYP3N66Q",
-   "version": "1.1.14"
+   "version": "1.2.1"
 }
