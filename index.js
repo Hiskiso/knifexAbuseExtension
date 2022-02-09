@@ -6,9 +6,11 @@ window.lastPromo = ''
 window.loger = (message, style = "") => { console.log(message, style); window.logs = window.logs + message + "\n" }
 window.isCapthaAdded = false;
 
+removeUi();
+
 window.onload = () => {
-    try {
-        chrome.storage.sync.get(['account'], function (result) {
+    try {     
+            chrome.storage.sync.get(['account'], function (result) {
             if (result.account) {
                 window.accounts = [result.account];
                 document.cookie = "id=" + result.account + ";"
@@ -16,6 +18,7 @@ window.onload = () => {
                 window.loger("%cGet account by cookie", "color: blue; font-size: 50px");
                 let id = parseCookie(document.cookie).id
                 chrome.storage.sync.set({ account: id }, () => { })
+                location.reload(true)
             }
 
         });
@@ -24,7 +27,6 @@ window.onload = () => {
         captchaUpdater();
         getProfileInfo();
        
-
         setInterval(() => {
             try {
                 document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
@@ -35,8 +37,11 @@ window.onload = () => {
         }, 1000)
 
 
-
     } catch (error) {
+        if(error.message == "Cannot read properties of null (reading 'value')"){
+            location.reload(true)
+        }
+
         window.loger(error)
     }
 }
@@ -59,10 +64,19 @@ chrome.runtime.onMessage.addListener(
                 let id = parseCookie(document.cookie).id
                 chrome.storage.sync.set({ account: id }, () => { })
                 sendResponse("Готово")
+                location.reload(true)
             }
                 break;
             case "reload": {
-                location.reload()
+                location.reload(true)
+            }
+                break;
+            case "toggleUI": {
+                chrome.storage.sync.get(['show_UI'], function (result) {
+                    console.log(result);
+                    chrome.storage.sync.set({show_UI: !result.show_UI}, function (result) {})
+                })
+                location.reload(true)
             }
                 break;
 
@@ -99,9 +113,6 @@ function websoketMain() {
                 clearTimers()
             }
             window.lastPromo = promo
-
-            
-
         }
     }
 
@@ -110,8 +121,6 @@ function websoketMain() {
     }
 
 }
-
-
 
 async function applyPromo(promo, callback = () => { }) {
     window.accounts.forEach(async (account, num) => {
@@ -189,9 +198,25 @@ function knifexAlert(message, type = "good") {
     setTimeout(() => { elAlertKnifex.innerHTML = "" }, 7000)
 }
 
-function captchaUpdater() {
-    window.temp = document.querySelector("textarea[name='g-recaptcha-response'").value
+function removeUi(){
+    chrome.storage.sync.get(['show_UI'], function (result) {
+       if(result.show_UI){
+        document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.mbonus.layoutSection").style.display = "none"
+        document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.gbonus > div.hbonus.layoutSection").style.display = "none"
+        document.querySelector("#root > div > header").style.display = "none"
+        document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.gbonus > div.abonus.layoutSection > div.abonus-grid").style.display = "none"
+        document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.gbonus > div.abonus.layoutSection > div.abonus-container.abonus-container-main > div").style.display = "none"
+    }
+    })
+}
 
+function captchaUpdater() {
+    try{
+        window.temp = document.querySelector("textarea[name='g-recaptcha-response'").value
+    }
+    catch{
+        location.reload(true)
+    }
 
     setInterval(() => {
         try {
@@ -214,7 +239,8 @@ function captchaUpdater() {
 
             }
         } catch (er) {
-            console.error(er);
+            knifexAlert("Для избежания ошибок страница перезагружена!")
+            location.reload(true)
         }
     }, 1000)
 
