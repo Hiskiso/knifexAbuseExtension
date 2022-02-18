@@ -14,3 +14,5 @@
 - Info of promo in title
 - [ ] Auto clear cookie grecaptcha
 - [ ] Auto click checkmark grecaptcha 
+
+
