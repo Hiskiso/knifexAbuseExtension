@@ -30,10 +30,10 @@ window.onload = () => {
 
         });
 
+
         websoketMain();
         captchaUpdater();
         getProfileInfo().then();
-
         setInterval(() => {
             try {
                 document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
@@ -93,8 +93,6 @@ function chatSpam(count = 5) {
     }
 
     messagesSocket.onmessage = (message)=>{console.log(message)}
-
-
 }
 
 
@@ -154,6 +152,7 @@ function websoketMain() {
 
     websk.onopen = () => {
         window.logger(window.accounts);
+        clashBet(0)
         websk.send(`420["join",{"ott":"2d3df9d5-b54f-4720-9d13-667479c968d0"}]`);
         window.logger("%c>   " + 'Joined', "color: blue");
         websk.send("2");
@@ -173,8 +172,9 @@ function websoketMain() {
             window.logger("%c" + promo, "color: green; background: #0f2c51; font-size: 30px");
 
             if (window.lastPromo !== promo) {
-                applyPromo(promo);
-                clearTimers()
+                applyPromo(promo).then();
+                clashBet().then();
+                clearTimers();
             }
             window.lastPromo = promo
         }
@@ -185,6 +185,35 @@ function websoketMain() {
     }
 
 }
+
+async function clashBet() {
+    let chatSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
+    let profile = await getProfileInfo()
+    let inventory = profile.data.i
+    let prefix = "419"
+    console.log(inventory)
+
+    chatSocket.onmessage = (message) => {
+        if (message.data.toString().includes("STARTING")) {
+            for (let item in inventory) {
+                item = inventory[item]
+                if (!item.b) {
+                    let msg = ["b", {"autoCashOut": "100", "i": [item.i], "rm": "cla"}]
+                    console.log(msg)
+                    chatSocket.send(++prefix + JSON.stringify(msg))
+                }
+            }
+        } else{
+
+        }
+    }
+
+    chatSocket.onopen = () => {
+        chatSocket.send(++prefix + JSON.stringify(["join", {"ott": profile.data.u.gauth}]))
+        chatSocket.send(++prefix + JSON.stringify(["joy", {"rm": "cla"}]))
+    };
+}
+
 
 async function applyPromo(promo, callback = () => {
 }) {
@@ -245,6 +274,8 @@ async function getProfileInfo() {
     let data = await request.json();
 
     window.lastPromo = data.data.c_p.newPromoQuery.name
+
+    return await data;
 }
 
 const parseCookie = str =>
