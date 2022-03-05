@@ -1,19 +1,17 @@
 chrome.contextMenus.create({title: "Last Promo", onclick:(info, tab)=>{sendCommand("lastpromo")}})
 chrome.contextMenus.create({title: "Reset Id", onclick:(info, tab)=>{sendCommand("resetid")}})
+chrome.contextMenus.create({title: "Toggle UI", onclick:(info, tab)=>{sendCommand("toggleUI")}})
+chrome.contextMenus.create({type:"separator"})
+chrome.contextMenus.create({title: "stop spamming", onclick:(info, tab)=>{sendCommand("spamStop")}})
+chrome.contextMenus.create({title: "spam 5", onclick:(info, tab)=>{sendCommand("spam", {count: 5})}})
+chrome.contextMenus.create({title: "spam 10", onclick:(info, tab)=>{sendCommand("spam", {count: 10})}})
+chrome.contextMenus.create({title: "spam 50", onclick:(info, tab)=>{sendCommand("spam", {count: 50})}})
 
-chrome.storage.sync.get(['show_UI'], function (result) {
-    chrome.contextMenus.create({title: "Remove UI", checked: result.show_UI, type: "checkbox", onclick:(info, tab)=>{sendCommand("toggleUI")}})
-
-})
 
 
-function sendCommand(command, args=""){
+function sendCommand(command, args= {}){
     chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-        var activeTab = tabs[0];
-        let args = command.split(" ");
-        args.shift();
-
-        chrome.tabs.sendMessage(activeTab.id, { "command": command.split(" ")[0] });
+        chrome.tabs.sendMessage(tabs[0].id, { "command": command.split(" ")[0], ...args });
 
 
     });

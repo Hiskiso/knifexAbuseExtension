@@ -3,16 +3,19 @@ window.captcha = [];
 window.timers = [];
 window.logs = ""
 window.lastPromo = ''
-window.logger = (message, style = "") => { console.log(message, style); window.logs = window.logs + message + "\n" }
+window.logger = (message, style = "") => {
+    console.log(message, style);
+    window.logs = window.logs + message + "\n"
+};
 window.isCapthaAdded = false;
 window.isPromoCaptured = false
-
-
+window.isEternalStop = false;
 
 window.onload = () => {
     removeUi();
 
     try {
+
         chrome.storage.sync.get(['account'], function (result) {
             if (result.account) {
                 window.accounts = [result.account];
@@ -20,8 +23,9 @@ window.onload = () => {
             } else {
                 window.logger("%cGet account by cookie", "color: blue; font-size: 50px");
                 let id = parseCookie(document.cookie).id
-                chrome.storage.sync.set({ account: id }, () => { })
-                location.reload(true)
+                chrome.storage.sync.set({account: id}, () => {
+                })
+                location.reload()
             }
 
         });
@@ -34,20 +38,65 @@ window.onload = () => {
             try {
                 document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText}  | ${document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText}`
             } catch (error) {
-                document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText + `${window.isPromoCaptured ? "✅ " : "❌ "}`
+                document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText + `${window.isPromoCaptured ? "✅ " : "❌ "}`;
             }
 
-        }, 1000)
+        }, 1000);
 
 
     } catch (error) {
         if (error.message === "Cannot read properties of null (reading 'value')") {
-            location.reload(true)
+            location.reload();
         }
 
-        window.logger(error)
+        window.logger(error);
     }
 }
+
+function chatSpam(count = 5) {
+    if (window.isEternalStop) location.reload()
+
+    let messagesSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
+    let msgPrefix = "421";
+
+    let arr = ["спамим", "промо", "погнали", "спс", "паль", "успеем", "го фаст", "чу-чуть осталось", "пишем", "топим", "go", "гого", "гг", "го"];
+
+    let before = "";
+
+    function getRandom() {
+        let tempRandom = arr[Math.random() * arr.length | 0];
+        if (before !== tempRandom) {
+
+            before = tempRandom;
+            return tempRandom;
+
+        } else {
+            return getRandom();
+        }
+    }
+
+    messagesSocket.onopen = () => {
+        messagesSocket.send("420[\"join\",{\"ott\":\"83c23bee-3ebd-467d-b559-11abc9a4b75a\"}]");
+
+        for (let i = 0; i < count; i++) {
+
+            setTimeout(() => {
+                let msg = msgPrefix++ + `["say",{"msg": "${getRandom()}","c_rm":"ru"}]`
+                messagesSocket.send(msg)
+                console.log(msg);
+            }, Math.floor(Math.random() * 60000));
+        }
+
+        setInterval(() => {
+            messagesSocket.send("2")
+        }, 25000);
+    }
+
+    messagesSocket.onmessage = (message)=>{console.log(message)}
+
+
+}
+
 
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
@@ -60,26 +109,38 @@ chrome.runtime.onMessage.addListener(
                 break;
 
             case "lastpromo": {
-                applyPromo(window.lastPromo, (result) => { console.log(result); })
+                applyPromo(window.lastPromo, (result) => {
+                    console.log(result);
+                })
             }
                 break;
             case "resetid": {
                 let id = parseCookie(document.cookie).id
-                chrome.storage.sync.set({ account: id }, () => { })
+                chrome.storage.sync.set({account: id}, () => {
+                })
                 sendResponse("Готово")
-                location.reload(true)
+                location.reload()
             }
                 break;
             case "reload": {
-                location.reload(true)
+                location.reload()
             }
                 break;
             case "toggleUI": {
                 chrome.storage.sync.get(['show_UI'], function (result) {
                     console.log(result);
-                    chrome.storage.sync.set({ show_UI: !result.show_UI }, function (result) { })
-                })
-                location.reload(true)
+                    chrome.storage.sync.set({show_UI: !result.show_UI}, function (result) {
+                    });
+                });
+                location.reload()
+            }
+                break;
+            case "spam": {
+                chatSpam(request.count);
+            }
+                break;
+            case "spamStop": {
+                window.isEternalStop = true;
             }
                 break;
 
@@ -93,11 +154,11 @@ function websoketMain() {
 
     websk.onopen = () => {
         window.logger(window.accounts);
-        websk.send(`420["join",{"ott":"2d3df9d5-b54f-4720-9d13-667479c968d0"}]`)
+        websk.send(`420["join",{"ott":"2d3df9d5-b54f-4720-9d13-667479c968d0"}]`);
         window.logger("%c>   " + 'Joined', "color: blue");
-        websk.send(2)
+        websk.send("2");
         setInterval(() => {
-            websk.send(2)
+            websk.send("2")
         }, 25000);
     };
 
@@ -125,11 +186,13 @@ function websoketMain() {
 
 }
 
-async function applyPromo(promo, callback = () => { }) {
+async function applyPromo(promo, callback = () => {
+}) {
+    // noinspection ES6MissingAwait
     window.accounts.forEach(async (account, num) => {
         let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
             method: 'POST',
-            body: JSON.stringify({ exclusive: false, promocode: promo, "captcha": window.captcha[num] }),
+            body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[num]}),
             headers: {
                 "content-type": "application/json",
                 "meta-data": account,
@@ -141,19 +204,15 @@ async function applyPromo(promo, callback = () => { }) {
             clearTimers();
             knifexAlert("Limit - please update captcha", "bad")
             window.logger("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
-        }
-        else if (r.ok === true) {
+        } else if (r.ok === true) {
             knifexAlert("PROMO ACTIVATED " + window.lastPromo);
             window.isPromoCaptured = true
             window.logger("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px")
-        }
-        else if (r.data === "NOT_FOUND") {
+        } else if (r.data === "NOT_FOUND") {
             knifexAlert(promo + " Not found", "bad")
-        }
-        else if (r.data === "BONUS_REST") {
+        } else if (r.data === "BONUS_REST") {
             knifexAlert("Max count bonus items in inventory", "bad")
-        }
-        else {
+        } else {
             knifexAlert(promo, "bad")
             window.logger(JSON.stringify(r) + ' ' + account)
         }
@@ -165,10 +224,14 @@ async function applyPromo(promo, callback = () => { }) {
 function clearTimers() {
     window.isPromoCaptured = false;
     window.isCapthaAdded = false;
-    window.timers.map(el => { clearTimeout(el); window.logger("All timers clear") })
+    window.timers.map(el => {
+        clearTimeout(el);
+        window.logger("All timers clear")
+    })
     window.timers = []
 
 }
+
 
 async function getProfileInfo() {
     let request = await fetch("https://knifex.best/api/user/initial", {
@@ -197,9 +260,12 @@ const parseCookie = str =>
 function knifexAlert(message, type = "good") {
     let elAlertKnifex = document.getElementById("__react-alert__");
     elAlertKnifex.innerHTML = ""
-    elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="left: 0px; position: fixed; display: flex; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; bottom: 0px; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type === "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
-    setTimeout(() => { elAlertKnifex.innerHTML = "" }, 7000)
+    elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="position: fixed; display: flex; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type === "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
+    setTimeout(() => {
+        elAlertKnifex.innerHTML = ""
+    }, 7000)
 }
+
 
 function removeUi() {
     chrome.storage.sync.get(['show_UI'], function (result) {
@@ -216,8 +282,7 @@ function removeUi() {
 function captchaUpdater() {
     try {
         window.temp = document.querySelector("textarea[name='g-recaptcha-response']").value
-    }
-    catch {
+    } catch {
         location.reload()
     }
 
@@ -235,7 +300,11 @@ function captchaUpdater() {
                 let ifr = document.querySelector("#root > div > div.AppLayout > div > div.bonus-col.gbonus > div.abonus.layoutSection > div.abonus-container.abonus-container-main > form > div.abonus-container__recaptcha > div > div > div > div > div > iframe")
                 ifr.src = ifr.src
 
-                let timer = setTimeout(() => { clearTimers(); knifexAlert("Captcha Expired", "bad"); window.logger("%cCaptcha Expired!!", "color: red; background: #0f2c51; font-size: 30px"); }, 120000)
+                let timer = setTimeout(() => {
+                    clearTimers();
+                    knifexAlert("Captcha Expired", "bad");
+                    window.logger("%cCaptcha Expired!!", "color: red; background: #0f2c51; font-size: 30px");
+                }, 120000)
                 window.timers.push(timer)
 
                 knifexAlert("Captcha added");
@@ -243,9 +312,7 @@ function captchaUpdater() {
             }
         } catch (er) {
             knifexAlert("Для избежания ошибок страница перезагружена!")
-            location.reload()
+            // location.reload()
         }
     }, 1000)
-
-
 }
