@@ -198,7 +198,7 @@ async function clashBet() {
             for (let item in inventory) {
                 item = inventory[item]
                 if (!item.b) {
-                    let msg = ["b", {"autoCashOut": "100", "i": [item.i], "rm": "cla"}]
+                    let msg = ["b", {"autoCashOut": "350", "i": [item.i], "rm": "cla"}]
                     console.log(msg)
                     chatSocket.send(++prefix + JSON.stringify(msg))
                 }
