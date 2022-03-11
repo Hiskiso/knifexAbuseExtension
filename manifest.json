@@ -1,29 +1,42 @@
 {
-   "browser_action": {
-      "default_popup": "public/options.html",
-      "default_title": "Настройки"
-   },
-   "background": {
-      "scripts": ["background.js"]
-    },
-   "content_scripts": [ {
+  "browser_action": {
+    "default_popup": "public/options.html",
+    "default_title": "Настройки"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
       "all_frames": false,
-      "css": [ "index.css"  ],
-      "js": [ "index.js" ],
-      "matches": [ "https://knifex.best/pages/bonus", "http://knifex.best/pages/bonus" ],
+      "js": [
+        "index.js"
+      ],
+      "matches": [
+        "https://knifex.best/pages/bonus",
+        "http://knifex.best/pages/bonus"
+      ],
       "run_at": "document_end"
-   } ],
-   "content_security_policy": "script-src 'self'; object-src 'self'",
-   "description": "Auto get promocode knifex",
-   "icons": {
-      "128": "faviconRel.ico",
-      "16": "faviconRel.ico",
-      "48": "faviconRel.ico"
-   },  
-   
-   "manifest_version": 2,
-   "name": "KnifeX Abuse",
-   "permissions": [ "http://knifex.best/pages/bonus", "https://knifex.best/pages/bonus", "storage", "tabs", "contextMenus" ],
-   "update_url": "https://raw.githubusercontent.com/Slitie-LLC/update_extension/main/updates.xml?token=GHSAT0AAAAAABOXILQ42FNY7UX3KLYC2MYEYP3N66Q",
-   "version": "1.4.2"
+    }
+  ],
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "description": "Auto get promocode knifex",
+  "icons": {
+    "128": "faviconRel.ico",
+    "16": "faviconRel.ico",
+    "48": "faviconRel.ico"
+  },
+  "manifest_version": 2,
+  "name": "KnifeX Abuse",
+  "permissions": [
+    "http://knifex.best/pages/bonus",
+    "https://knifex.best/pages/bonus",
+    "storage",
+    "tabs",
+    "contextMenus"
+  ],
+  "update_url": "https://raw.githubusercontent.com/Slitie-LLC/update_extension/main/updates.xml?token=GHSAT0AAAAAABOXILQ42FNY7UX3KLYC2MYEYP3N66Q",
+  "version": "1.4.2"
 }
