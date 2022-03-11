@@ -160,9 +160,9 @@ function websoketMain() {
     websk.onopen = () => {
         console.log("accounts", window.accounts);
 
-            getProfileInfo().then(profileData => {
-                websk.send(`420["join",{"ott":"${profileData.data.u.gauth}"}]`);
-            });
+        getProfileInfo().then(profileData => {
+            websk.send(`420["join",{"ott":"${profileData.data.u.gauth}"}]`);
+        });
 
         clashBet();
 
@@ -317,7 +317,7 @@ async function getProfileInfo() {
 
     window.lastPromo = data.data.c_p.newPromoQuery.name
 
-    return  data;
+    return data;
 }
 
 const parseCookie = str =>
