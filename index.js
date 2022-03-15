@@ -3,8 +3,9 @@ window.captcha = [];
 window.timers = [];
 window.lastPromo = '';
 window.isCapthaAdded = false;
-window.isPromoCaptured = false
+window.isPromoCaptured = false;
 window.isEternalStop = false;
+window.knifexProfile = {};
 
 window.onload = () => {
     removeUi();
@@ -28,7 +29,6 @@ window.onload = () => {
 
         websoketMain();
         captchaUpdater();
-        getProfileInfo().then();
         titleUpdater();
 
 
@@ -81,78 +81,80 @@ function chatSpam(count = 5) {
     }
 
     messagesSocket.onopen = () => {
-        messagesSocket.send("420[\"join\",{\"ott\":\"83c23bee-3ebd-467d-b559-11abc9a4b75a\"}]");
+        messagesSocket.send(`420["join",{"ott": "${window.knifexProfile.u.gauth}]"`);
+
 
         for (let i = 0; i < count; i++) {
-            if (window.isEternalStop) location.reload()
+
             setTimeout(() => {
-                let msg = msgPrefix++ + `["say",{"msg": "${getRandom()}","c_rm":"ru"}]`
-                messagesSocket.send(msg)
-                console.log(msg);
+                if (!window.isEternalStop) {
+                    let msg = msgPrefix++ + `["say",{"msg": "${getRandom()}","c_rm":"ru"}]`
+                    messagesSocket.send(msg)
+                    console.log(msg);
+                } else console.log("message Pass")
             }, Math.floor(Math.random() * 30000));
+
+
         }
 
-        setInterval(() => {
-            messagesSocket.send("2")
-        }, 25000);
+
     }
 }
 
 
-chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
-        console.log(request);
-        switch (request.command) {
-            case "getlogs": {
-                navigator.clipboard.writeText(window.logs)
-                sendResponse("Скопированно");
-            }
-                break;
-
-            case "lastpromo": {
-                applyPromo(window.lastPromo, (result) => {
-                    console.log(result);
-                })
-            }
-                break;
-            case "resetid": {
-                let id = parseCookie(document.cookie).id
-                chrome.storage.sync.set({account: id}, () => {
-                })
-                sendResponse("Готово")
-                location.reload()
-            }
-                break;
-            case "reload": {
-                location.reload()
-            }
-                break;
-            case "toggleUI": {
-                chrome.storage.sync.get(['show_UI'], function (result) {
-                    console.log(result);
-                    chrome.storage.sync.set({show_UI: !result.show_UI}, function (result) {
-                    });
-                });
-                location.reload()
-            }
-                break;
-            case "spam": {
-                chatSpam(request.count);
-            }
-                break;
-            case "spamStop": {
-                window.isEternalStop = true;
-            }
-                break;
-            case "clashBet": {
-                clashBet();
-            }
-                break;
-
-            default:
-                break;
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+    console.log(request);
+    switch (request.command) {
+        case "getlogs": {
+            navigator.clipboard.writeText(window.logs)
+            sendResponse("Скопированно");
         }
-    });
+            break;
+
+        case "lastpromo": {
+            applyPromo(window.lastPromo, (result) => {
+                console.log(result);
+            })
+        }
+            break;
+        case "resetid": {
+            let id = parseCookie(document.cookie).id
+            chrome.storage.sync.set({account: id}, () => {
+            })
+            sendResponse("Готово")
+            location.reload()
+        }
+            break;
+        case "reload": {
+            location.reload()
+        }
+            break;
+        case "toggleUI": {
+            chrome.storage.sync.get(['show_UI'], function (result) {
+                console.log(result);
+                chrome.storage.sync.set({show_UI: !result.show_UI}, function (result) {
+                });
+            });
+            location.reload()
+        }
+            break;
+        case "spam": {
+            chatSpam(request.count);
+        }
+            break;
+        case "spamStop": {
+            window.isEternalStop = true;
+        }
+            break;
+        case "clashBet": {
+            clashBet();
+        }
+            break;
+
+        default:
+            break;
+    }
+});
 
 function websoketMain() {
     websk = new WebSocket("wss://knifex.best:2083/socket.io/?EIO=3&transport=websocket");
@@ -162,6 +164,8 @@ function websoketMain() {
 
         getProfileInfo().then(profileData => {
             websk.send(`420["join",{"ott":"${profileData.data.u.gauth}"}]`);
+            window.lastPromo = profileData.data.c_p.newPromoQuery.name;
+            window.knifexProfile = profileData.data
         });
 
         clashBet();
@@ -169,7 +173,7 @@ function websoketMain() {
         console.log("%c>   " + 'Joined', "color: blue");
         websk.send("2");
         setInterval(() => {
-            websk.send("2")
+            websk.send("2");
         }, 25000);
     };
 
@@ -179,7 +183,7 @@ function websoketMain() {
 
         if (data.data.toString().includes(`newPromoQuery`)) {
 
-            data = JSON.parse(data.data.toString().substring(2))
+            data = JSON.parse(data.data.toString().substring(2));
             const promo = data[1]?.newPromoQuery?.name;
             console.log("%c" + promo, "color: green; background: #0f2c51; font-size: 30px");
 
@@ -188,41 +192,51 @@ function websoketMain() {
                 clashBet().then();
                 clearTimers();
             }
-            window.lastPromo = promo
+            window.lastPromo = promo;
         }
     }
 
     websk.onclose = () => {
-        websoketMain()
+        websoketMain();
     }
 
 }
 
 async function clashBet() {
-    let chatSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
-    let profile = await getProfileInfo()
-    let inventory = profile.data.i
-    let prefix = "419"
-    console.log("inventory", inventory)
 
+    let profile = await getProfileInfo();
+    let inventory = profile.data.i;
+    let prefix = "419";
+    console.log("inventory", inventory);
+
+    if (inventory.length === 0) return
+
+    let chatSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
     chatSocket.onmessage = (message) => {
         if (message.data.toString().includes("STARTING")) {
+
             for (let item in inventory) {
-                item = inventory[item]
+
+                item = inventory[item];
+
                 if (item.b === true) {
-                    let msg = ["b", {"autoCashOut": "350", "i": [item.i], "rm": "cla"}]
-                    console.log(msg)
-                    chatSocket.send(++prefix + JSON.stringify(msg))
+                    let msg = ["b", {"autoCashOut": "350", "i": [item.i], "rm": "cla"}];
+                    console.log(msg);
+                    chatSocket.send(++prefix + JSON.stringify(msg));
                 }
             }
-        } else {
 
+            chatSocket.close();
+
+        } else {
+            chatSocket.close();
+            return null;
         }
     }
 
     chatSocket.onopen = () => {
-        chatSocket.send(++prefix + JSON.stringify(["join", {"ott": profile.data.u.gauth}]))
-        chatSocket.send(++prefix + JSON.stringify(["joy", {"rm": "cla"}]))
+        chatSocket.send(++prefix + JSON.stringify(["join", {"ott": profile.data.u.gauth}]));
+        chatSocket.send(++prefix + JSON.stringify(["joy", {"rm": "cla"}]));
     };
 }
 
@@ -235,27 +249,25 @@ async function applyPromo(promo, callback = () => {
             method: 'POST',
             body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[num]}),
             headers: {
-                "content-type": "application/json",
-                "meta-data": account,
-                "cookie": `id=${account}`,
+                "content-type": "application/json", "meta-data": account, "cookie": `id=${account}`,
             }
         })
-        let r = await request.json()
+        let r = await request.json();
         if (r.data === "LIMIT") {
             clearTimers();
-            knifexAlert("Limit - please update captcha", "bad")
+            knifexAlert("Limit - please update captcha", "bad");
             console.log("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
         } else if (r.ok === true) {
             knifexAlert("PROMO ACTIVATED " + window.lastPromo);
-            window.isPromoCaptured = true
-            console.log("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px")
+            window.isPromoCaptured = true;
+            console.log("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px");
         } else if (r.data === "NOT_FOUND") {
             knifexAlert(promo + " Not found", "bad")
         } else if (r.data === "BONUS_REST") {
-            knifexAlert("Max count bonus items in inventory", "bad")
+            knifexAlert("Max count bonus items in inventory", "bad");
         } else {
             knifexAlert(promo, "bad")
-            console.log(JSON.stringify(r) + ' ' + account)
+            console.log(JSON.stringify(r) + ' ' + account);
         }
         callback(r.data)
 
@@ -267,7 +279,7 @@ function clearTimers() {
     window.isCapthaAdded = false;
     window.timers.map(el => {
         clearTimeout(el);
-        console.log("All timers clear")
+        console.log("All timers clear");
     });
     window.timers = []
 
@@ -307,33 +319,26 @@ function clearTimers() {
 async function getProfileInfo() {
     let request = await fetch("https://knifex.best/api/user/initial", {
         headers: {
-            "content-type": "application/json",
-            "meta-data": accounts[0],
-            "cookie": `id=${accounts[0]}`,
+            "content-type": "application/json", "meta-data": accounts[0], "cookie": `id=${accounts[0]}`,
         }
     });
 
-    let data = await request.json();
-
-    window.lastPromo = data.data.c_p.newPromoQuery.name
-
-    return data;
+    return await request.json();
 }
 
-const parseCookie = str =>
-    str
-        .split(';')
-        .map(v => v.split('='))
-        .reduce((acc, v) => {
-            acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-            return acc;
-        }, {});
+const parseCookie = str => str
+    .split(';')
+    .map(v => v.split('='))
+    .reduce((acc, v) => {
+        acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
+        return acc;
+    }, {});
 
 
 function knifexAlert(message, type = "good") {
     let elAlertKnifex = document.getElementById("__react-alert__");
     elAlertKnifex.innerHTML = ""
-    elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="position: fixed; display: flex; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type === "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
+    elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="position: fixed; display: flex; left=0px; bottom=0px; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type === "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
     setTimeout(() => {
         elAlertKnifex.innerHTML = ""
     }, 7000)
