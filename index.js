@@ -91,7 +91,7 @@ function chatSpam(count = 5) {
     }
 
     messagesSocket.onopen = () => {
-        messagesSocket.send(`420["join",{"ott": "${window.knifexProfile.u.gauth}]"`);
+        messagesSocket.send(`420["join",{"ott": "${window.knifexProfile.u.gauth}"]`);
 
 
         for (let i = 0; i < count; i++) {
