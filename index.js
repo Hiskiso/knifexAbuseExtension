@@ -91,7 +91,7 @@ function chatSpam(count = 5) {
     }
 
     messagesSocket.onopen = () => {
-        messagesSocket.send(`420["join",{"ott": "${window.knifexProfile.u.gauth}"]`);
+        messagesSocket.send(`420["join",{"ott": "${window.knifexProfile.u.gauth}"}]`);
 
 
         for (let i = 0; i < count; i++) {
@@ -262,7 +262,7 @@ async function applyPromo(promo, callback = () => {
 
         let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
             method: 'POST',
-            body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[num]}),
+            body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[0]}),
             headers: {
                 "content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`,
             }
