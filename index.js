@@ -1,4 +1,4 @@
-window.accounts = [];
+window.account = '';
 window.captcha = [];
 window.timers = [];
 window.lastPromo = '';
@@ -6,15 +6,18 @@ window.isCapthaAdded = false;
 window.isPromoCaptured = false;
 window.isEternalStop = false;
 window.knifexProfile = {};
+window.canAutoBet = false;
 
 window.onload = () => {
+    console.clear()
     removeUi();
 
     try {
 
-        chrome.storage.sync.get(['account'], function (result) {
+        chrome.storage.sync.get(null, function (result) {
+            console.table(result)
             if (result.account) {
-                window.accounts = [result.account];
+                window.account = result.account;
                 document.cookie = "id=" + result.account + ";"
             } else {
                 console.log("%cGet account by cookie", "color: blue; font-size: 50px");
@@ -22,6 +25,13 @@ window.onload = () => {
                 chrome.storage.sync.set({account: id}, () => {
                 })
                 location.reload()
+            }
+
+            if(result.autoBet){
+                window.canAutoBet = result.autoBet
+            }
+            else{
+                chrome.storage.sync.set({autoBet: false}, () => {})
             }
 
         });
@@ -150,6 +160,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             clashBet();
         }
             break;
+        case "toggleAutobet": {
+            chrome.storage.sync.get(['autoBet'], function (result) {
+                console.log(result);
+                chrome.storage.sync.set({autoBet: !result.autoBet}, function (result) {
+                });
+            });
+            location.reload()
+        }
+            break;
 
         default:
             break;
@@ -160,15 +179,11 @@ function websoketMain() {
     websk = new WebSocket("wss://knifex.best:2083/socket.io/?EIO=3&transport=websocket");
 
     websk.onopen = () => {
-        console.log("accounts", window.accounts);
-
         getProfileInfo().then(profileData => {
             websk.send(`420["join",{"ott":"${profileData.data.u.gauth}"}]`);
             window.lastPromo = profileData.data.c_p.newPromoQuery.name;
             window.knifexProfile = profileData.data
         });
-
-        clashBet();
 
         console.log("%c>   " + 'Joined', "color: blue");
         websk.send("2");
@@ -243,13 +258,13 @@ async function clashBet() {
 
 async function applyPromo(promo, callback = () => {
 }) {
-    // noinspection ES6MissingAwait
-    window.accounts.forEach(async (account, num) => {
+
+
         let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
             method: 'POST',
             body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[num]}),
             headers: {
-                "content-type": "application/json", "meta-data": account, "cookie": `id=${account}`,
+                "content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`,
             }
         })
         let r = await request.json();
@@ -260,18 +275,18 @@ async function applyPromo(promo, callback = () => {
         } else if (r.ok === true) {
             knifexAlert("PROMO ACTIVATED " + window.lastPromo);
             window.isPromoCaptured = true;
-            console.log("%cPROMO +++ " + account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px");
+            console.log("%cPROMO +++ " + window.account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px");
         } else if (r.data === "NOT_FOUND") {
             knifexAlert(promo + " Not found", "bad")
         } else if (r.data === "BONUS_REST") {
             knifexAlert("Max count bonus items in inventory", "bad");
         } else {
             knifexAlert(promo, "bad")
-            console.log(JSON.stringify(r) + ' ' + account);
+            console.log(JSON.stringify(r) + ' ' + window.account);
         }
         callback(r.data)
 
-    });
+
 }
 
 function clearTimers() {
@@ -319,7 +334,7 @@ function clearTimers() {
 async function getProfileInfo() {
     let request = await fetch("https://knifex.best/api/user/initial", {
         headers: {
-            "content-type": "application/json", "meta-data": accounts[0], "cookie": `id=${accounts[0]}`,
+            "content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`,
         }
     });
 
