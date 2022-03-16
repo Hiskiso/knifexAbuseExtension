@@ -102,7 +102,7 @@ function chatSpam(count = 5) {
                     messagesSocket.send(msg)
                     console.log(msg);
                 } else console.log("message Pass")
-            }, Math.floor(Math.random() * 30000));
+            }, Math.floor(Math.random() * 5000));
 
 
         }
@@ -228,6 +228,12 @@ async function clashBet() {
 
     let chatSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
     chatSocket.onmessage = (message) => {
+
+        if(message.data.toString() === "40"){
+            chatSocket.send(++prefix + JSON.stringify(["join", {"ott": profile.data.u.gauth}]));
+            chatSocket.send(++prefix + JSON.stringify(["joy", {"rm": "cla"}]));
+        }
+
         if (message.data.toString().includes("STARTING")) {
 
             for (let item in inventory) {
@@ -241,18 +247,11 @@ async function clashBet() {
                 }
             }
 
-            chatSocket.close();
+             chatSocket.close();
 
-        } else {
-            chatSocket.close();
-            return null;
         }
     }
 
-    chatSocket.onopen = () => {
-        chatSocket.send(++prefix + JSON.stringify(["join", {"ott": profile.data.u.gauth}]));
-        chatSocket.send(++prefix + JSON.stringify(["joy", {"rm": "cla"}]));
-    };
 }
 
 
@@ -353,7 +352,7 @@ const parseCookie = str => str
 function knifexAlert(message, type = "good") {
     let elAlertKnifex = document.getElementById("__react-alert__");
     elAlertKnifex.innerHTML = ""
-    elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="position: fixed; display: flex; left=0px; bottom=0px; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type === "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
+    elAlertKnifex.innerHTML = `<div loginerrtimeout="7000" style="position: fixed; display: flex; left: 0px; bottom: 0px; justify-content: center; align-items: flex-start; flex-direction: column; width: 100%; pointer-events: none; z-index: 100;"><div style="transform: scale(1); transition: all 250ms ease-in-out 0s;"><div class="ntf ntf--${type === "good" ? "good" : "bad"}" style="margin: 10px; pointer-events: all;">${message}</div></div></div>`
     setTimeout(() => {
         elAlertKnifex.innerHTML = ""
     }, 7000)
