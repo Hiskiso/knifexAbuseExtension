@@ -74,7 +74,14 @@ function chatSpam(count = 5) {
     let messagesSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
     let msgPrefix = "421";
 
-    let arr = ["спамим", "промо", "погнали", "спс", "паль", "успеем", "го фаст", "чу-чуть осталось", "пишем", "топим", "go", "гого", "гг", "го"];
+    let arr = ["z", "промо", "погнали", "спс", "!statsbet", "паль", "успеем", "!statsdep", "го фаст", "чу-чуть осталось", "пишем", "топим", "go", "гого", "гг", "го"];
+
+    const delay = (n) => {
+        return new Promise(res => {
+            let tm = setTimeout(() => res(tm), n);
+        })
+    };
+
 
     let before = "";
 
@@ -102,7 +109,7 @@ function chatSpam(count = 5) {
                     messagesSocket.send(msg)
                     console.log(msg);
                 } else console.log("message Pass")
-            },5000);
+            },5000 * i);
 
 
         }
