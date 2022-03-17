@@ -102,7 +102,7 @@ function chatSpam(count = 5) {
                     messagesSocket.send(msg)
                     console.log(msg);
                 } else console.log("message Pass")
-            }, Math.floor(Math.random() * 5000));
+            },5000);
 
 
         }
