@@ -22,14 +22,14 @@
     }
   ],
   "content_security_policy": "script-src 'self'; object-src 'self'",
-  "description": "Auto get promocode knifex",
+  "description": "НЕ ДЛЯ ПРОДАЖИ",
   "icons": {
     "128": "faviconRel.ico",
     "16": "faviconRel.ico",
     "48": "faviconRel.ico"
   },
   "manifest_version": 2,
-  "name": "KnifeX Abuse",
+  "name": "KnifeX Abuse |SOURCE|",
   "permissions": [
     "http://knifex.best/pages/bonus",
     "https://knifex.best/pages/bonus",
@@ -37,6 +37,5 @@
     "tabs",
     "contextMenus"
   ],
-  "update_url": "https://raw.githubusercontent.com/Slitie-LLC/update_extension/main/updates.xml?token=GHSAT0AAAAAABOXILQ42FNY7UX3KLYC2MYEYP3N66Q",
-  "version": "1.6.12"
+  "version": "1.7.12"
 }

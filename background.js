@@ -4,9 +4,8 @@ chrome.contextMenus.create({title: "Toggle UI", onclick:(info, tab)=>{sendComman
 chrome.contextMenus.create({title: "Toggle autoBet", onclick:(info, tab)=>{sendCommand("toggleAutobet")}})
 chrome.contextMenus.create({type:"separator"})
 chrome.contextMenus.create({title: "stop spamming", onclick:(info, tab)=>{sendCommand("spamStop")}})
-chrome.contextMenus.create({title: "spam 5", onclick:(info, tab)=>{sendCommand("spam", {count: 5})}})
-chrome.contextMenus.create({title: "spam 10", onclick:(info, tab)=>{sendCommand("spam", {count: 10})}})
-chrome.contextMenus.create({title: "spam 50", onclick:(info, tab)=>{sendCommand("spam", {count: 50})}})
+chrome.contextMenus.create({title: "spam", onclick:(info, tab)=>{sendCommand("spam")}})
+
 
 
 

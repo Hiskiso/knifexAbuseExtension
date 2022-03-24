@@ -7,6 +7,7 @@ window.isPromoCaptured = false;
 window.isEternalStop = false;
 window.knifexProfile = {};
 window.canAutoBet = false;
+window.currentChatScore = "";
 
 window.onload = () => {
     console.clear()
@@ -27,11 +28,11 @@ window.onload = () => {
                 location.reload()
             }
 
-            if(result.autoBet){
+            if (result.autoBet) {
                 window.canAutoBet = result.autoBet
-            }
-            else{
-                chrome.storage.sync.set({autoBet: false}, () => {})
+            } else {
+                chrome.storage.sync.set({autoBet: false}, () => {
+                })
             }
 
         });
@@ -56,9 +57,11 @@ function titleUpdater() {
     setInterval(() => {
         try {
             let time = document.querySelector("#accordion__heading-giveaway > span:nth-child(3)").innerText
-            let messagesCount = document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText
+            let chatScore = document.querySelector("#accordion__panel-giveaway > div.chat-giveaway__note").innerText
 
-            document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${messagesCount}  | ${time}`
+            window.currentChatScore = chatScore.slice(0, 3);
+
+            document.title = `${window.isCapthaAdded ? "✅ " : "❌ "} ${chatScore}  | ${time}`
 
         } catch (error) {
             document.title = document.querySelector("#accordion__heading-giveaway > span:nth-child(2)").innerText + `${window.isPromoCaptured ? "✅ " : "❌ "}`;
@@ -68,7 +71,7 @@ function titleUpdater() {
 }
 
 
-function chatSpam(count = 5) {
+function chatSpam() {
 
 
     let messagesSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
@@ -101,20 +104,13 @@ function chatSpam(count = 5) {
         messagesSocket.send(`420["join",{"ott": "${window.knifexProfile.u.gauth}"}]`);
 
 
-        for (let i = 0; i < count; i++) {
-
-            setTimeout(() => {
-                if (!window.isEternalStop) {
-                    let msg = msgPrefix++ + `["say",{"msg": "${getRandom()}","c_rm":"ru"}]`
-                    messagesSocket.send(msg)
-                    console.log(msg);
-                } else console.log("message Pass")
-            },5000 * i);
-
-
-        }
-
-
+        let interval = setInterval(() => {
+            if (Number(window.currentChatScore) < 200) {
+                let msg = msgPrefix++ + `["say",{"msg": "${getRandom()}","c_rm":"ru"}]`
+                messagesSocket.send(msg)
+                console.log(msg);
+            } else clearInterval(interval)
+        }, 5500);
     }
 }
 
@@ -129,9 +125,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             break;
 
         case "lastpromo": {
-            applyPromo(window.lastPromo, (result) => {
-                console.log(result);
-            })
+            applyPromo(window.lastPromo)
         }
             break;
         case "resetid": {
@@ -156,7 +150,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         }
             break;
         case "spam": {
-            chatSpam(request.count);
+            chatSpam();
         }
             break;
         case "spamStop": {
@@ -236,7 +230,7 @@ async function clashBet() {
     let chatSocket = new WebSocket("wss://knifex.best:2053/socket.io/?EIO=3&transport=websocket");
     chatSocket.onmessage = (message) => {
 
-        if(message.data.toString() === "40"){
+        if (message.data.toString() === "40") {
             chatSocket.send(++prefix + JSON.stringify(["join", {"ott": profile.data.u.gauth}]));
             chatSocket.send(++prefix + JSON.stringify(["joy", {"rm": "cla"}]));
         }
@@ -254,7 +248,7 @@ async function clashBet() {
                 }
             }
 
-             chatSocket.close();
+            chatSocket.close();
 
         }
     }
@@ -262,36 +256,36 @@ async function clashBet() {
 }
 
 
-async function applyPromo(promo, callback = () => {
-}) {
+async function applyPromo(promo) {
 
 
-        let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
-            method: 'POST',
-            body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[0]}),
-            headers: {
-                "content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`,
-            }
-        })
-        let r = await request.json();
-        if (r.data === "LIMIT") {
-            clearTimers();
-            knifexAlert("Limit - please update captcha", "bad");
-            console.log("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
-        } else if (r.ok === true) {
-            knifexAlert("PROMO ACTIVATED " + window.lastPromo);
-            window.isPromoCaptured = true;
-            console.log("%cPROMO +++ " + window.account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px");
-        } else if (r.data === "NOT_FOUND") {
-            knifexAlert(promo + " Not found", "bad")
-        } else if (r.data === "BONUS_REST") {
-            knifexAlert("Max count bonus items in inventory", "bad");
-        } else {
-            knifexAlert(promo, "bad")
-            console.log(JSON.stringify(r) + ' ' + window.account);
+    let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
+        method: 'POST',
+        body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[0]}),
+        headers: {
+            "content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`,
         }
-        callback(r.data)
+    })
+    
+    let r = await request.json();
+    if (r.data === "LIMIT") {
+        clearTimers();
+        knifexAlert("Limit - please update captcha", "bad");
+        console.log("%cLIMIT", "color: red; background: #0f2c51; font-size: 30px");
+    } else if (r.ok === true) {
+        knifexAlert("PROMO ACTIVATED " + window.lastPromo);
+        window.isPromoCaptured = true;
+        console.log("%cPROMO +++ " + window.account + " " + JSON.stringify(r) + " ", "color: green; background: #0f2c51; font-size: 30px");
+    } else if (r.data === "NOT_FOUND") {
+        knifexAlert(promo + " Not found", "bad")
+    } else if (r.data === "BONUS_REST") {
+        knifexAlert("Max count bonus items in inventory", "bad");
+    } else {
+        knifexAlert(promo, "bad")
+        console.log(JSON.stringify(r) + ' ' + window.account);
+    }
 
+    return r.data
 
 }
 
