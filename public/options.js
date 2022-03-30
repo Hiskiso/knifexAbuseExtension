@@ -7,16 +7,16 @@ let manifestData = chrome.runtime.getManifest();
 function addnew(e) {
     e.preventDefault();
 
-    chrome.storage.sync.set({ account: e.target.children[0].children[0].children[0].value }, () => { })
-
-    chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
+    chrome.tabs.query({currentWindow: true, active: true}, function (tabs) {
         var activeTab = tabs[0];
 
-        chrome.tabs.sendMessage(activeTab.id, { "command": "reload" }, (response) => { });
+        chrome.tabs.sendMessage(activeTab.id, {
+            "command": "setAcc", "id": e.target.children[0].children[0].children[0].value
+        }, (response) => {
+        });
 
 
     });
-
 
 
 }

@@ -19,7 +19,6 @@ window.onload = () => {
             console.table(result)
             if (result.account) {
                 window.account = result.account;
-                document.cookie = "id=" + result.account + ";"
             } else {
                 console.log("%cGet account by cookie", "color: blue; font-size: 50px");
                 let id = parseCookie(document.cookie).id
@@ -161,12 +160,23 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
             clashBet();
         }
             break;
+        case "clashBetByArgs": {
+            clashBet(request.coef, request.onlyBonus, request.hasRety);
+        }
+            break;
         case "toggleAutobet": {
             chrome.storage.sync.get(['autoBet'], function (result) {
                 console.log(result);
                 chrome.storage.sync.set({autoBet: !result.autoBet}, function (result) {
                 });
             });
+            location.reload()
+        }
+            break;
+        case "setAcc": {
+            chrome.storage.sync.set({account: request.id}, () => {
+            })
+            document.cookie = `id=${request.id}; path=/;`;
             location.reload()
         }
             break;
@@ -218,7 +228,7 @@ function websoketMain() {
 
 }
 
-async function clashBet() {
+async function clashBet(coef = "350", onlyBonus = true, hasRety = true) {
 
     let profile = await getProfileInfo();
     let inventory = profile.data.i;
@@ -241,12 +251,21 @@ async function clashBet() {
 
                 item = inventory[item];
 
-                if (item.b === true) {
-                    let msg = ["b", {"autoCashOut": "350", "i": [item.i], "rm": "cla"}];
+                if (item.b === onlyBonus) {
+                    let msg = ["b", {"autoCashOut": coef, "i": [item.i], "rm": "cla"}];
                     console.log(msg);
                     chatSocket.send(++prefix + JSON.stringify(msg));
                 }
             }
+
+            if (hasRety) {
+                setTimeout(() => {
+                    if (inventory.length !== 0) {
+                        setTimeout(clashBet, 1000)
+                    }
+                }, 1500)
+            }
+
 
             chatSocket.close();
 
@@ -258,7 +277,6 @@ async function clashBet() {
 
 async function applyPromo(promo) {
 
-
     let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
         method: 'POST',
         body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[0]}),
@@ -266,7 +284,7 @@ async function applyPromo(promo) {
             "content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`,
         }
     })
-    
+
     let r = await request.json();
     if (r.data === "LIMIT") {
         clearTimers();
@@ -286,6 +304,7 @@ async function applyPromo(promo) {
     }
 
     return r.data
+
 
 }
 
