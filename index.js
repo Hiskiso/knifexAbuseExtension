@@ -228,7 +228,7 @@ function websoketMain() {
 
 }
 
-async function clashBet(coef = "350", onlyBonus = true, hasRety = true) {
+async function clashBet(coef = "350", onlyBonus = true, hasRety = true, autoSell=true) {
 
     let profile = await getProfileInfo();
     let inventory = profile.data.i;
@@ -269,9 +269,21 @@ async function clashBet(coef = "350", onlyBonus = true, hasRety = true) {
 
             chatSocket.close();
 
+
         }
     }
 
+}
+
+async function sellAll(){
+    let profile = await getProfileInfo();
+    let inventory = profile.data.i;
+
+    let requset = await fetch('https://knifex.best/api/items/sell-items', {
+        method: "POST",
+        body: JSON.stringify({buy: [], sell: inventory.map(el=>el.i)}),
+        headers: {"content-type": "application/json", "meta-data": window.account, "cookie": `id=${window.account}`}
+    })
 }
 
 
