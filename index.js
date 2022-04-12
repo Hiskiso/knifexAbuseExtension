@@ -218,7 +218,7 @@ function websoketMain() {
                 clashBet().then();
                 clearTimers();
             }
-            window.lastPromo = promo;
+
         }
     }
 
@@ -290,7 +290,7 @@ async function sellAll(){
 async function applyPromo(promo) {
 
     if(promo === undefined) return
-
+    window.lastPromo = promo;
     let request = await fetch(`https:///knifex.best/api/user/freebie/promo`, {
         method: 'POST',
         body: JSON.stringify({exclusive: false, promocode: promo, "captcha": window.captcha[0]}),
